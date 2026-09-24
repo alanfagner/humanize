@@ -144,16 +144,27 @@ def test_naturaldelta(test_input: float | dt.timedelta, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "value, expected",
+    "kwargs",
     [
-        (float("nan"), "nan"),
-        (float("inf"), "inf"),
-        (float("-inf"), "-inf"),
+        {},
+        {"minimum_unit": "milliseconds"},
+        {"minimum_unit": "microseconds"},
+        {"months": False},
     ],
 )
-def test_naturaldelta_non_finite(value: float, expected: str) -> None:
-    """Non-finite floats are returned unchanged instead of raising."""
-    assert humanize.naturaldelta(value) == expected
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (float("nan"), "NaN"),
+        (float("inf"), "+Inf"),
+        (float("-inf"), "-Inf"),
+    ],
+)
+def test_naturaldelta_non_finite(
+    value: float, expected: str, kwargs: dict[str, object]
+) -> None:
+    """Non-finite floats render as a bare NaN/+Inf/-Inf marker, undecorated."""
+    assert humanize.naturaldelta(value, **kwargs) == expected
 
 
 def test_naturaldelta_too_large_value_raises() -> None:
