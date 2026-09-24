@@ -204,7 +204,8 @@ def intcomma(value: NumberOrString, ndigits: int | None = None) -> str:
                     from decimal import Decimal
 
                     parsed = Decimal(value)
-                    value = int(parsed) if parsed == int(parsed) else float(value)
+                    truncated = int(parsed)
+                    value = truncated if parsed == truncated else float(value)
         elif not isinstance(value, int):
             if not math.isfinite(float(value)):
                 return _format_not_finite(float(value))
