@@ -103,3 +103,22 @@ def test_naturalsize(test_args: list[int] | list[int | bool], expected: str) -> 
         test_args[0] = f"-{test_args[0]}"
 
     assert humanize.naturalsize(*test_args) == "-" + expected
+
+
+@pytest.mark.parametrize(
+    "test_args, expected",
+    [
+        ([float("nan")], "NaN"),
+        (["nan"], "NaN"),
+        ([float("inf")], "+Inf"),
+        (["inf"], "+Inf"),
+        ([float("-inf")], "-Inf"),
+        (["-inf"], "-Inf"),
+        ([float("inf"), False, True], "+Inf"),
+        ([float("nan"), True], "NaN"),
+    ],
+)
+def test_naturalsize_non_finite(
+    test_args: list[float | str | bool], expected: str
+) -> None:
+    assert humanize.naturalsize(*test_args) == expected
