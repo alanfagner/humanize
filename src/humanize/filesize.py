@@ -65,6 +65,12 @@ def naturalsize(
         '30000.0 QB'
         >>> naturalsize(-4096, True)
         '-4.0 KiB'
+        >>> naturalsize(float("nan"))
+        'NaN'
+        >>> naturalsize(float("inf"))
+        '+Inf'
+        >>> naturalsize(float("-inf"))
+        '-Inf'
 
         ```
 
@@ -88,6 +94,14 @@ def naturalsize(
 
     base = 1024 if (gnu or binary) else 1000
     bytes_ = float(value)
+
+    import math
+
+    from humanize.number import _format_not_finite
+
+    if not math.isfinite(bytes_):
+        return _format_not_finite(bytes_)
+
     abs_bytes = abs(bytes_)
 
     if abs_bytes == 1 and not gnu:
