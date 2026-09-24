@@ -271,6 +271,24 @@ def test_naturaltime_nomonths(
     assert humanize.naturaltime(test_input, months=False) == expected
 
 
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {},
+        {"future": True},
+        {"months": False},
+        {"minimum_unit": "milliseconds"},
+        {"minimum_unit": "microseconds"},
+    ],
+)
+@pytest.mark.parametrize("value, expected", NON_FINITE_EXPECTED)
+def test_naturaltime_non_finite(
+    value: float, expected: str, kwargs: dict[str, object]
+) -> None:
+    """Non-finite floats render as a bare NaN/+Inf/-Inf marker, undecorated."""
+    assert humanize.naturaltime(value, **kwargs) == expected
+
+
 @freeze_time(FROZEN_DATE)
 @pytest.mark.parametrize(
     "test_args, expected",
