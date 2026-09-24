@@ -196,26 +196,20 @@ def intcomma(value: NumberOrString, ndigits: int | None = None) -> str:
                 try:
                     value = int(value)
                 except ValueError:
-                    # float() accepted the string on the line above, so reaching
-                    # here means a valid number written in a notation int() does
-                    # not read, such as "1e3". Decimal keeps it exact above 2**53;
-                    # it rejects PEP 515 underscores that float() allows, hence
-                    # the InvalidOperation fallback.
+                    # float() accepted the string above, so we are looking at a
+                    # valid number in a notation int() does not read, such as
+                    # "1e3". Parse it with Decimal, which stays exact past 2**53,
+                    # and keep int for an integral value so "1e30" groups like
+                    # the plain digits would.
                     from decimal import Decimal, InvalidOperation
 
                     try:
-                        parsed = Decimal(value)
+                        parsed: Decimal | float = Decimal(value)
                     except InvalidOperation:
-                        as_float = float(value)
-                        value = (
-                            int(as_float) if as_float.is_integer() else as_float
-                        )
-                    else:
-                        value = (
-                            int(parsed)
-                            if parsed == parsed.to_integral_value()
-                            else float(value)
-                        )
+                        # Decimal rejects the PEP 515 underscores float()
+                        # accepts, as in "1_0e3".
+                        parsed = float(value)
+                    value = int(parsed) if parsed == int(parsed) else float(value)
         elif not isinstance(value, int):
             if not math.isfinite(float(value)):
                 return _format_not_finite(float(value))
