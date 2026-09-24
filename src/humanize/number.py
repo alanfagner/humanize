@@ -165,6 +165,10 @@ def intcomma(value: NumberOrString, ndigits: int | None = None) -> str:
         '14,308.4'
         >>> intcomma("14308.40", 1)
         '14,308.4'
+        >>> intcomma("1e3")
+        '1,000'
+        >>> intcomma("-2E4")
+        '-20,000'
         >>> intcomma(None)
         'None'
 
@@ -189,7 +193,29 @@ def intcomma(value: NumberOrString, ndigits: int | None = None) -> str:
             if "." in value:
                 value = float(value)
             else:
-                value = int(value)
+                try:
+                    value = int(value)
+                except ValueError:
+                    # float() accepted the string on the line above, so reaching
+                    # here means a valid number written in a notation int() does
+                    # not read, such as "1e3". Decimal keeps it exact above 2**53;
+                    # it rejects PEP 515 underscores that float() allows, hence
+                    # the InvalidOperation fallback.
+                    from decimal import Decimal, InvalidOperation
+
+                    try:
+                        parsed = Decimal(value)
+                    except InvalidOperation:
+                        as_float = float(value)
+                        value = (
+                            int(as_float) if as_float.is_integer() else as_float
+                        )
+                    else:
+                        value = (
+                            int(parsed)
+                            if parsed == parsed.to_integral_value()
+                            else float(value)
+                        )
         elif not isinstance(value, int):
             if not math.isfinite(float(value)):
                 return _format_not_finite(float(value))
