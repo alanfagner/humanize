@@ -850,6 +850,30 @@ def test_precisedelta_suppress_units(
     )
 
 
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {},
+        {"minimum_unit": "microseconds"},
+        {"format": "%0.4f"},
+        {"suppress": ["days"]},
+    ],
+)
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (float("nan"), "NaN"),
+        (float("inf"), "+Inf"),
+        (float("-inf"), "-Inf"),
+    ],
+)
+def test_precisedelta_non_finite(
+    value: float, expected: str, kwargs: dict[str, object]
+) -> None:
+    """Non-finite floats render as a bare NaN/+Inf/-Inf marker, undecorated."""
+    assert humanize.precisedelta(value, **kwargs) == expected
+
+
 def test_precisedelta_bogus_call() -> None:
     assert humanize.precisedelta(None) == "None"
 
