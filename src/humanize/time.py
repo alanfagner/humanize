@@ -560,7 +560,20 @@ def precisedelta(
     '0 minutes'
 
     ```
+
+    A non-finite float renders as a bare marker:
+
+    ```pycon
+    >>> precisedelta(float("-inf"))
+    '-Inf'
+
+    ```
     """
+    import math
+
+    if isinstance(value, float) and not math.isfinite(value):
+        return _format_not_finite(value)
+
     date, delta = _date_and_delta(value, precise=True)
     if date is None:
         return str(value)
