@@ -93,11 +93,11 @@ def naturalsize(
         suffix = suffixes["decimal"]
 
     base = 1024 if (gnu or binary) else 1000
+    bytes_ = float(value)
+
     import math
 
     from humanize.number import _format_not_finite
-
-    bytes_ = float(value)
 
     if not math.isfinite(bytes_):
         return _format_not_finite(bytes_)
