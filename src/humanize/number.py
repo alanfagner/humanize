@@ -201,14 +201,9 @@ def intcomma(value: NumberOrString, ndigits: int | None = None) -> str:
                     # "1e3". Parse it with Decimal, which stays exact past 2**53,
                     # and keep int for an integral value so "1e30" groups like
                     # the plain digits would.
-                    from decimal import Decimal, InvalidOperation
+                    from decimal import Decimal
 
-                    try:
-                        parsed: Decimal | float = Decimal(value)
-                    except InvalidOperation:
-                        # Decimal rejects the PEP 515 underscores float()
-                        # accepts, as in "1_0e3".
-                        parsed = float(value)
+                    parsed = Decimal(value)
                     value = int(parsed) if parsed == int(parsed) else float(value)
         elif not isinstance(value, int):
             if not math.isfinite(float(value)):
