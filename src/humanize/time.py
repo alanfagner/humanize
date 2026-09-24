@@ -12,7 +12,7 @@ from functools import total_ordering
 
 from .i18n import _gettext as _
 from .i18n import _ngettext
-from .number import intcomma
+from .number import _format_not_finite, intcomma
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -113,12 +113,13 @@ def naturaldelta(
 
     Returns:
         str (str or `value`): A natural representation of the amount of time
-            elapsed unless `value` is not datetime.timedelta or cannot be
-            converted to int (cannot be float due to 'inf' or 'nan').
-            In that case, a `value` is returned unchanged.
+            elapsed, unless `value` is not datetime.timedelta and cannot be
+            converted to int. In that case, a `value` is returned unchanged.
+            A non-finite float renders as `NaN`, `+Inf` or `-Inf`.
 
     Raises:
-        OverflowError: If `value` is too large to convert to datetime.timedelta.
+        OverflowError: If `value` is a too-large *finite* value to convert to
+            datetime.timedelta.
 
     Examples:
         Compare two timestamps in a custom local timezone::
@@ -136,8 +137,19 @@ def naturaldelta(
 
         ```
 
+        A non-finite float renders as a bare marker::
+
+        ```pycon
+        >>> naturaldelta(float("nan"))
+        'NaN'
+        >>> naturaldelta(float("inf"))
+        '+Inf'
+
+        ```
+
     """
     import datetime as dt
+    import math
 
     tmp = Unit[minimum_unit.upper()]
     if tmp not in (Unit.SECONDS, Unit.MILLISECONDS, Unit.MICROSECONDS):
@@ -148,6 +160,8 @@ def naturaldelta(
     if isinstance(value, dt.timedelta):
         delta = value
     else:
+        if isinstance(value, float) and not math.isfinite(value):
+            return _format_not_finite(value)
         try:
             int(value)  # Explicitly don't support string such as "NaN" or "inf"
             value = float(value)
@@ -155,12 +169,11 @@ def naturaldelta(
         except (ValueError, TypeError):
             return str(value)
         except OverflowError:
-            # `int(value)` raises OverflowError for non-finite floats (inf/-inf),
-            # which, like NaN, are returned unchanged. A too-large *finite* value
-            # (whose OverflowError comes from `timedelta`) is still raised, per
-            # the documented `OverflowError` contract.
-            import math
-
+            # Non-finite *floats* are handled by the guard above. A non-float
+            # whose `int()` overflows (e.g. Decimal("Infinity")) still reaches
+            # here and is returned unchanged. A too-large *finite* value (whose
+            # OverflowError comes from `timedelta`) is still raised, per the
+            # documented `OverflowError` contract.
             if not math.isfinite(value):
                 return str(value)
             raise
