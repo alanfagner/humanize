@@ -127,6 +127,11 @@ def test_intcomma_non_numeric_string_unchanged(test_input: str) -> None:
     assert humanize.intcomma(test_input) == test_input
 
 
+@pytest.mark.parametrize("test_input", ["1e", "e5", "1e3.5", "e", "1ee3"])
+def test_intcomma_malformed_scientific_unchanged(test_input: str) -> None:
+    assert humanize.intcomma(test_input) == test_input
+
+
 @pytest.mark.parametrize("sign", [1, -1])
 def test_intcomma_large_integer(sign: int) -> None:
     value = sign * (10**400 + 123)
