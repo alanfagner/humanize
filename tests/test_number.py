@@ -95,6 +95,7 @@ def test_ordinal_negative(test_input: int | str, expected: str) -> None:
         ([math.nan], "NaN"),
         ([math.inf], "+Inf"),
         ([-math.inf], "-Inf"),
+        (["1.5e6"], "1,500,000.0"),
         (["nan"], "NaN"),
         (["-inf"], "-Inf"),
     ],
@@ -103,6 +104,33 @@ def test_intcomma(
     test_args: list[int] | list[float] | list[str], expected: str
 ) -> None:
     assert humanize.intcomma(*test_args) == expected
+
+
+@pytest.mark.parametrize(
+    "test_input, expected",
+    [
+        ("1e3", "1,000"),
+        ("1E3", "1,000"),
+        ("1e+3", "1,000"),
+        ("-2e4", "-20,000"),
+        ("-2E4", "-20,000"),
+        ("1e-3", "0.001"),
+        ("1e30", "1" + ",000" * 10),
+        ("1_0e3", "10,000"),
+    ],
+)
+def test_intcomma_scientific_notation(test_input: str, expected: str) -> None:
+    assert humanize.intcomma(test_input) == expected
+
+
+@pytest.mark.parametrize("test_input", ["abc", "something else", ""])
+def test_intcomma_non_numeric_string_unchanged(test_input: str) -> None:
+    assert humanize.intcomma(test_input) == test_input
+
+
+@pytest.mark.parametrize("test_input", ["1e", "e5", "1e3.5", "e", "1ee3"])
+def test_intcomma_malformed_scientific_unchanged(test_input: str) -> None:
+    assert humanize.intcomma(test_input) == test_input
 
 
 @pytest.mark.parametrize("sign", [1, -1])

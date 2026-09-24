@@ -165,6 +165,10 @@ def intcomma(value: NumberOrString, ndigits: int | None = None) -> str:
         '14,308.4'
         >>> intcomma("14308.40", 1)
         '14,308.4'
+        >>> intcomma("1e3")
+        '1,000'
+        >>> intcomma("-2E4")
+        '-20,000'
         >>> intcomma(None)
         'None'
 
@@ -189,7 +193,19 @@ def intcomma(value: NumberOrString, ndigits: int | None = None) -> str:
             if "." in value:
                 value = float(value)
             else:
-                value = int(value)
+                try:
+                    value = int(value)
+                except ValueError:
+                    # float() accepted the string above, so we are looking at a
+                    # valid number in a notation int() does not read, such as
+                    # "1e3". Parse it with Decimal, which stays exact past 2**53,
+                    # and keep int for an integral value so "1e30" groups like
+                    # the plain digits would.
+                    from decimal import Decimal
+
+                    parsed = Decimal(value)
+                    truncated = int(parsed)
+                    value = truncated if parsed == truncated else float(value)
         elif not isinstance(value, int):
             if not math.isfinite(float(value)):
                 return _format_not_finite(float(value))
