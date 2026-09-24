@@ -39,6 +39,28 @@ def test_ordinal(test_input: str, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
+    "test_input, expected",
+    [
+        (-1, "-1st"),
+        (-2, "-2nd"),
+        (-3, "-3rd"),
+        (-4, "-4th"),
+        (-11, "-11th"),
+        (-12, "-12th"),
+        (-13, "-13th"),
+        (-21, "-21st"),
+        (-22, "-22nd"),
+        (-23, "-23rd"),
+        (-101, "-101st"),
+        (-111, "-111th"),
+        ("-3", "-3rd"),
+    ],
+)
+def test_ordinal_negative(test_input: int | str, expected: str) -> None:
+    assert humanize.ordinal(test_input) == expected
+
+
+@pytest.mark.parametrize(
     "test_args, expected",
     [
         ([100], "100"),
