@@ -25,6 +25,13 @@ ONE_DAY = 24 * ONE_HOUR
 ONE_YEAR = 365.25 * ONE_DAY
 FROZEN_DATE = "2010-02-02"
 
+# The library renders a non-finite float as a bare marker
+NON_FINITE_EXPECTED = [
+    (float("nan"), "NaN"),
+    (float("inf"), "+Inf"),
+    (float("-inf"), "-Inf"),
+]
+
 with freeze_time(FROZEN_DATE):
     NOW = dt.datetime.now()
     NOW_UTC = dt.datetime.now(tz=dt.timezone.utc)
@@ -152,14 +159,7 @@ def test_naturaldelta(test_input: float | dt.timedelta, expected: str) -> None:
         {"months": False},
     ],
 )
-@pytest.mark.parametrize(
-    "value, expected",
-    [
-        (float("nan"), "NaN"),
-        (float("inf"), "+Inf"),
-        (float("-inf"), "-Inf"),
-    ],
-)
+@pytest.mark.parametrize("value, expected", NON_FINITE_EXPECTED)
 def test_naturaldelta_non_finite(
     value: float, expected: str, kwargs: dict[str, object]
 ) -> None:
@@ -859,14 +859,7 @@ def test_precisedelta_suppress_units(
         {"suppress": ["days"]},
     ],
 )
-@pytest.mark.parametrize(
-    "value, expected",
-    [
-        (float("nan"), "NaN"),
-        (float("inf"), "+Inf"),
-        (float("-inf"), "-Inf"),
-    ],
-)
+@pytest.mark.parametrize("value, expected", NON_FINITE_EXPECTED)
 def test_precisedelta_non_finite(
     value: float, expected: str, kwargs: dict[str, object]
 ) -> None:
