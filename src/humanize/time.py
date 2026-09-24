@@ -300,8 +300,26 @@ def naturaltime(
 
     Returns:
         str: A natural representation of the input in a resolution that makes sense.
+            A non-finite float renders as a bare `NaN`, `+Inf` or `-Inf`, with no
+            tense or unit attached.
+
+    Examples:
+        A non-finite float renders as a bare marker::
+
+        ```pycon
+        >>> naturaltime(float("nan"))
+        'NaN'
+        >>> naturaltime(float("inf"))
+        '+Inf'
+
+        ```
+
     """
     import datetime as dt
+    import math
+
+    if isinstance(value, float) and not math.isfinite(value):
+        return _format_not_finite(value)
 
     value = _convert_aware_datetime(value)
     when = _convert_aware_datetime(when)
