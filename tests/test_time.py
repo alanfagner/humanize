@@ -25,6 +25,13 @@ ONE_DAY = 24 * ONE_HOUR
 ONE_YEAR = 365.25 * ONE_DAY
 FROZEN_DATE = "2010-02-02"
 
+# The library renders a non-finite float as a bare marker
+NON_FINITE_EXPECTED = [
+    (float("nan"), "NaN"),
+    (float("inf"), "+Inf"),
+    (float("-inf"), "-Inf"),
+]
+
 with freeze_time(FROZEN_DATE):
     NOW = dt.datetime.now()
     NOW_UTC = dt.datetime.now(tz=dt.timezone.utc)
@@ -144,16 +151,20 @@ def test_naturaldelta(test_input: float | dt.timedelta, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "value, expected",
+    "kwargs",
     [
-        (float("nan"), "nan"),
-        (float("inf"), "inf"),
-        (float("-inf"), "-inf"),
+        {},
+        {"minimum_unit": "milliseconds"},
+        {"minimum_unit": "microseconds"},
+        {"months": False},
     ],
 )
-def test_naturaldelta_non_finite(value: float, expected: str) -> None:
-    """Non-finite floats are returned unchanged instead of raising."""
-    assert humanize.naturaldelta(value) == expected
+@pytest.mark.parametrize("value, expected", NON_FINITE_EXPECTED)
+def test_naturaldelta_non_finite(
+    value: float, expected: str, kwargs: dict[str, object]
+) -> None:
+    """Non-finite floats render as a bare NaN/+Inf/-Inf marker, undecorated."""
+    assert humanize.naturaldelta(value, **kwargs) == expected
 
 
 def test_naturaldelta_too_large_value_raises() -> None:
@@ -837,6 +848,23 @@ def test_precisedelta_suppress_units(
     assert (
         humanize.precisedelta(val, minimum_unit=min_unit, suppress=suppress) == expected
     )
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {},
+        {"minimum_unit": "microseconds"},
+        {"format": "%0.4f"},
+        {"suppress": ["days"]},
+    ],
+)
+@pytest.mark.parametrize("value, expected", NON_FINITE_EXPECTED)
+def test_precisedelta_non_finite(
+    value: float, expected: str, kwargs: dict[str, object]
+) -> None:
+    """Non-finite floats render as a bare NaN/+Inf/-Inf marker, undecorated."""
+    assert humanize.precisedelta(value, **kwargs) == expected
 
 
 def test_precisedelta_bogus_call() -> None:
