@@ -95,6 +95,7 @@ def test_ordinal_negative(test_input: int | str, expected: str) -> None:
         ([math.nan], "NaN"),
         ([math.inf], "+Inf"),
         ([-math.inf], "-Inf"),
+        (["1.5e6"], "1,500,000.0"),
         (["nan"], "NaN"),
         (["-inf"], "-Inf"),
     ],
